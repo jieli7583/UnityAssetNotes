@@ -1,6 +1,8 @@
-- put `AssetNoteEditor.cs` editor script in editor folder
+- put `AssetNoteWindow.cs` editor script in editor folder
 - select a asset or folder in the Project tab, and write a note in the inspector tab.  
-![notes](https://github.com/user-attachments/assets/8cdacee6-b105-4f24-bd0b-7d21048ee7ba)
+- 写完备注以后点击“Save Note”
+
+- 在 2 by 3布局+项目单列下生效
 
 > [!Warning]
 > ### 1-column layout limitations 
