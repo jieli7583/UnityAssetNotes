@@ -1,3 +1,7 @@
+- 改进：在 Notes 区域添加手动保存按钮，避免丢失内容。支持2022版本。
+- 修复了路径为空、资源正在加载、或对象被重命名导致的错误覆盖源备注的bug。
+- 修复了点击空白区域触发保存的bug，Save Note按钮是唯一的保存触发器。
+#
 - put `AssetNoteWindow.cs` editor script in editor folder
 - select a asset or folder in the Project tab, and write a note in the inspector tab.  
 - 写完备注以后点击“Save Note”
