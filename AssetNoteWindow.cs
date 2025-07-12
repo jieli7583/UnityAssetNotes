@@ -1,15 +1,15 @@
-// 改进：在 Notes 区域添加手动保存按钮，避免丢失内容
+// 改进：在 Notes 区域添加手动保存按钮，避免丢失内容。支持2022版本
 
 using UnityEditor;
 using UnityEngine;
 
 [InitializeOnLoad]
-public class AssetNoteEditor : Editor
+public class AssetNoteWindow : Editor
 {
     static string previousSelectedAssetPath = "";
     static string selectedAssetPath = "";
 
-    static AssetNoteEditor()
+    static AssetNoteWindow()
     {
         // 监听选择变化
         Selection.selectionChanged += OnSelectionChanged;
