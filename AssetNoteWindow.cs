@@ -1,5 +1,3 @@
-// 改进：在 Notes 区域添加手动保存按钮，避免丢失内容。支持2022版本
-
 using UnityEditor;
 using UnityEngine;
 
@@ -11,21 +9,21 @@ public class AssetNoteWindow : Editor
 
     static AssetNoteWindow()
     {
-        // 监听选择变化
+        // 安全监听资源选择变化
         Selection.selectionChanged += OnSelectionChanged;
     }
 
     private static void OnSelectionChanged()
     {
-        string selectedObjectPath = AssetDatabase.GetAssetPath(Selection.activeObject);
-        if (!string.IsNullOrEmpty(selectedObjectPath) && (AssetDatabase.IsValidFolder(selectedObjectPath) || System.IO.File.Exists(selectedObjectPath)) && selectedObjectPath != selectedAssetPath)
+        if (Selection.activeObject == null) return;
+
+        string path = AssetDatabase.GetAssetPath(Selection.activeObject);
+        if (!string.IsNullOrEmpty(path) &&
+            (AssetDatabase.IsValidFolder(path) || System.IO.File.Exists(path)) &&
+            path != selectedAssetPath)
         {
             previousSelectedAssetPath = selectedAssetPath;
-            selectedAssetPath = selectedObjectPath;
-        }
-        else
-        {
-            selectedAssetPath = "";
+            selectedAssetPath = path;
         }
     }
 
@@ -38,7 +36,7 @@ public class AssetNoteWindow : Editor
 
         private void OnEnable()
         {
-            SaveSelectedNote();
+            // 只有在新的资源合法时才加载备注
             OnSelectionChanged();
             LoadNote();
         }
@@ -46,7 +44,8 @@ public class AssetNoteWindow : Editor
         public override void OnInspectorGUI()
         {
             string path = AssetDatabase.GetAssetPath(target);
-            if (!string.IsNullOrEmpty(path) && (AssetDatabase.IsValidFolder(path) || System.IO.File.Exists(path)))
+            if (!string.IsNullOrEmpty(path) &&
+                (AssetDatabase.IsValidFolder(path) || System.IO.File.Exists(path)))
             {
                 base.OnInspectorGUI();
                 bool isFolder = target.GetType() == typeof(DefaultAsset);
@@ -60,7 +59,7 @@ public class AssetNoteWindow : Editor
 
         private void AssetInspectorGUI(bool isFolder)
         {
-            if (isFolder) EditorGUI.EndDisabledGroup();
+            if (isFolder) EditorGUI.EndDisabledGroup(); // Unity Bug workaround
 
             EditorGUILayout.LabelField("Notes", EditorStyles.boldLabel);
 
@@ -68,7 +67,7 @@ public class AssetNoteWindow : Editor
             assetNote = EditorGUILayout.TextArea(assetNote, GUILayout.ExpandHeight(true));
             EditorGUILayout.EndScrollView();
 
-            if (GUILayout.Button("💾 Save Note"))
+            if (GUILayout.Button("Save Note"))
             {
                 SaveSelectedNote();
             }
@@ -76,11 +75,13 @@ public class AssetNoteWindow : Editor
             if (isFolder) EditorGUI.BeginDisabledGroup(true);
         }
 
-        public void LoadNote()
+        private void LoadNote()
         {
-            if (!string.IsNullOrEmpty(selectedAssetPath))
+            if (string.IsNullOrEmpty(selectedAssetPath)) return;
+
+            var importer = AssetImporter.GetAtPath(selectedAssetPath);
+            if (importer != null)
             {
-                AssetImporter importer = AssetImporter.GetAtPath(selectedAssetPath);
                 assetNote = importer.userData;
                 lastSavedNote = assetNote;
             }
@@ -88,9 +89,11 @@ public class AssetNoteWindow : Editor
 
         private void SaveSelectedNote()
         {
-            if (!string.IsNullOrEmpty(selectedAssetPath))
+            if (string.IsNullOrEmpty(selectedAssetPath)) return;
+
+            var importer = AssetImporter.GetAtPath(selectedAssetPath);
+            if (importer != null)
             {
-                AssetImporter importer = AssetImporter.GetAtPath(selectedAssetPath);
                 importer.userData = assetNote;
                 lastSavedNote = assetNote;
                 EditorUtility.SetDirty(importer);
@@ -104,3 +107,4 @@ public class AssetNoteWindow : Editor
     [CustomEditor(typeof(TextAsset))] public class TextInspector : AssetInspector { }
     [CustomEditor(typeof(Material))] public class MaterialInspector : AssetInspector { }
 }
+
